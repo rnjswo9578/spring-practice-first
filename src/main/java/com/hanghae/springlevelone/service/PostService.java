@@ -36,21 +36,25 @@ public class PostService {
     }
     @Transactional
     public PostResponseDto updatePost(Long id, PostRequestDto postRequestDto, String password){
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
-        );
-        if (!post.getPassword().equals(password))
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        Post post = checkPost(id);
+        checkPassword(post, password);
         post.update(postRequestDto);
         return new PostResponseDto(post);
     }
     public String deletePost(Long id, String password) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
-        );
-        if (!post.getPassword().equals(password))
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        Post post = checkPost(id);
+        checkPassword(post, password);
         postRepository.delete(post);
         return "게시글을 삭제했습니다.";
+    }
+
+    public Post checkPost(Long id){
+        return postRepository.findById(id).orElseThrow(
+                () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
+        );
+    }
+    public void checkPassword(Post post, String password){
+        if (!post.getPassword().equals(password))
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
     }
 }
