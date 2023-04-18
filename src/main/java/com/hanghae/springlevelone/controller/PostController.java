@@ -28,12 +28,12 @@ public class PostController {
     public PostResponseDto getPost(@PathVariable Long id){
         return postService.getPost(id);
     }
-    @PutMapping("/update/{id}/{password}")
-    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @PathVariable String password) {
+    @PutMapping("/update/{id}")
+    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @RequestParam(name = "password") String password) {
         return postService.updatePost(id, postRequestDto, password);
     }
-    @DeleteMapping("/delete/{id}/{password}")
-    public String deletePost(@PathVariable Long id,@PathVariable String password) {
+    @DeleteMapping("/delete/{id}")
+    public String deletePost(@PathVariable Long id,@RequestParam(name = "password") String password) {
         return postService.deletePost(id, password);
     }
 }
