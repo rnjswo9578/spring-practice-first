@@ -3,28 +3,49 @@ package com.hanghae.springlevelone.service;
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
 import com.hanghae.springlevelone.entity.Post;
+import com.hanghae.springlevelone.entity.User;
+import com.hanghae.springlevelone.jwt.JwtUtil;
 import com.hanghae.springlevelone.repository.PostRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.hanghae.springlevelone.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PostService {
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
+    @Transactional
+    public PostResponseDto createPost(PostRequestDto postRequestDto, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("Token Error");
+            }
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("존재하지 않는 아이디 입니다.")
+            );
+
+            Post post = postRepository.saveAndFlush(new Post(postRequestDto, user.getUsername(), user.getPassword()));
+            return new PostResponseDto(post);
+        } else {
+            return null;
+        }
     }
 
-    public String createPost(PostRequestDto postRequestDto) {
-        Post post = new Post(postRequestDto);
-        postRepository.save(post);
-        return "게시글이 등록됐습니다.";
-    }
+    @Transactional(readOnly = true)
     public List<PostResponseDto> getPostList() {
         return postRepository.findAllByOrderByCreatedAtDesc().stream().map(PostResponseDto::new).collect(Collectors.toList());
     }
@@ -34,7 +55,7 @@ public class PostService {
         );
         return new PostResponseDto(post);
     }
-    @Transactional
+
     public PostResponseDto updatePost(Long id, PostRequestDto postRequestDto, String password){
         Post post = checkPost(id);
         checkPassword(post, password);
