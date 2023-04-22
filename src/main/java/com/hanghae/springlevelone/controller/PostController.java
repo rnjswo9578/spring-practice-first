@@ -2,7 +2,9 @@ package com.hanghae.springlevelone.controller;
 
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
+import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.service.PostService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +36,7 @@ public class PostController {
         return postService.updatePost(id, postRequestDto, request);
     }
     @DeleteMapping("/{id}")
-    public String deletePost(@PathVariable Long id,@RequestParam(name = "password") String password) {
-        return postService.deletePost(id, password);
+    public ResponseEntity<Message> deletePost(@PathVariable Long id, HttpServletRequest request) {
+        return postService.deletePost(id, request);
     }
 }
