@@ -56,15 +56,38 @@ public class PostService {
         return new PostResponseDto(post);
     }
 
-    public PostResponseDto updatePost(Long id, PostRequestDto postRequestDto, String password){
-        Post post = checkPost(id);
-        checkPassword(post, password);
-        post.update(postRequestDto);
-        return new PostResponseDto(post);
+    @Transactional
+    public PostResponseDto updatePost(Long id, PostRequestDto postRequestDto, HttpServletRequest request){
+
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("Token Error");
+            }
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("존재하지 않는 아이디 입니다.")
+            );
+
+            Post post = checkPost(id);
+            if (post.getPassword().equals(user.getPassword())) {
+                post.update(postRequestDto);
+            } else {
+                throw new IllegalArgumentException("작성자가 아니면 수정할 수 없습니다.");
+            }
+
+            return new PostResponseDto(post);
+
+        } else {
+            return null;
+        }
     }
     public String deletePost(Long id, String password) {
         Post post = checkPost(id);
-        checkPassword(post, password);
+//        checkPassword(post, password);
         postRepository.delete(post);
         return "게시글을 삭제했습니다.";
     }
@@ -73,9 +96,5 @@ public class PostService {
         return postRepository.findById(id).orElseThrow(
                 () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
         );
-    }
-    public void checkPassword(Post post, String password){
-        if (!post.getPassword().equals(password))
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
     }
 }

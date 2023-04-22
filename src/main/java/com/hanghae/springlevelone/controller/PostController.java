@@ -30,8 +30,8 @@ public class PostController {
         return postService.getPost(id);
     }
     @PutMapping("/{id}")
-    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @RequestParam(name = "password") String password) {
-        return postService.updatePost(id, postRequestDto, password);
+    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, HttpServletRequest request) {
+        return postService.updatePost(id, postRequestDto, request);
     }
     @DeleteMapping("/{id}")
     public String deletePost(@PathVariable Long id,@RequestParam(name = "password") String password) {
