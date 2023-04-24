@@ -57,24 +57,3 @@ public class UserService {
         return ResponseEntity.ok(message);
     }
 }
-
-
-//    @Transactional
-//    public ResponseEntity<Message> signUp(SignupRequestDto signupRequestDto) {
-//        String username = signupRequestDto.getUsername();
-//        String password = signupRequestDto.getPassword();
-//
-//        Optional<User> found = userRepository.findByUsername(username);
-//        if (found.isPresent()) {
-//            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
-//        }
-//        User user = new User(username, password);
-//
-//        userRepository.save(user);
-//
-//        Message message = new Message();
-//        message.setMsg("회원가입 성공");
-//        message.setStatusCode(HttpStatus.OK.value());
-//
-//        return new ResponseEntity<>(message, HttpStatus.OK);
-//    }

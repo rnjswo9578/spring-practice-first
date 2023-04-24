@@ -5,8 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -25,13 +23,19 @@ public class Post extends Timestamped{
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
     private String post;
 
-    public Post(PostRequestDto postRequestDto, String username, String password) {
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public Post(PostRequestDto postRequestDto, User user) {
         this.title = postRequestDto.getTitle();
-        this.username = username;
-        this.password = password;
+        this.username = user.getUsername();
+        this.password = user.getPassword();
         this.post = postRequestDto.getPost();
+        this.user = user;
     }
 
     public void update(PostRequestDto postRequestDto) {

@@ -41,7 +41,8 @@ public class PostService {
                     () -> new IllegalArgumentException("존재하지 않는 아이디 입니다.")
             );
 
-            Post post = postRepository.saveAndFlush(new Post(postRequestDto, user.getUsername(), user.getPassword()));
+            Post post = postRepository.saveAndFlush(new Post(postRequestDto, user));
+
             return new PostResponseDto(post);
         } else {
             throw new NullPointerException("토큰이 존재하지 않습니다.");

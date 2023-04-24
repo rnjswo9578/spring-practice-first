@@ -1,10 +1,8 @@
 package com.hanghae.springlevelone.dto;
 
 import com.hanghae.springlevelone.entity.Post;
-import com.hanghae.springlevelone.entity.Timestamped;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
