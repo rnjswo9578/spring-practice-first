@@ -22,7 +22,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @OneToMany
+    @OneToMany(mappedBy = "user")
     List<Post> posts = new ArrayList<>();
 
     public User(String username, String password) {

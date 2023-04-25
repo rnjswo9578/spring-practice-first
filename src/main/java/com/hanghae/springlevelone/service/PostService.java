@@ -41,7 +41,8 @@ public class PostService {
                     () -> new IllegalArgumentException("존재하지 않는 아이디 입니다.")
             );
 
-            Post post = postRepository.saveAndFlush(new Post(postRequestDto, user));
+            Post post = postRepository.saveAndFlush(new Post(postRequestDto));
+            post.setUser(user);
 
             return new PostResponseDto(post);
         } else {
