@@ -1,11 +1,14 @@
 package com.hanghae.springlevelone.service;
 
+import com.hanghae.springlevelone.dto.CommentsResponseDto;
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
+import com.hanghae.springlevelone.entity.Comment;
 import com.hanghae.springlevelone.entity.Post;
 import com.hanghae.springlevelone.entity.User;
 import com.hanghae.springlevelone.jwt.JwtUtil;
 import com.hanghae.springlevelone.message.Message;
+import com.hanghae.springlevelone.repository.CommentsRepository;
 import com.hanghae.springlevelone.repository.PostRepository;
 import com.hanghae.springlevelone.repository.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 public class PostService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final CommentsRepository commentsRepository;
     private final JwtUtil jwtUtil;
 
     @Transactional
@@ -41,7 +46,7 @@ public class PostService {
                     () -> new IllegalArgumentException("존재하지 않는 아이디 입니다.")
             );
 
-            Post post = postRepository.saveAndFlush(new Post(postRequestDto));
+            Post post = postRepository.saveAndFlush(new Post(postRequestDto, user));
             post.setUser(user);
 
             return new PostResponseDto(post);
@@ -52,14 +57,27 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostResponseDto> getPostList() {
-        return postRepository.findAllByOrderByCreatedAtDesc().stream().map(PostResponseDto::new).collect(Collectors.toList());
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<PostResponseDto> postResponseDtos = new ArrayList<>();
+        for (Post post : posts) {
+            List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(post.getId());
+            List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
+            PostResponseDto postResponseDto = new PostResponseDto(post);
+            postResponseDto.setComments(commentsResponseDtoList);
+            postResponseDtos.add(postResponseDto);
+        }
+        return postResponseDtos;
     }
 
     public PostResponseDto getPost(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
         );
-        return new PostResponseDto(post);
+        List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(id);
+        List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
+        PostResponseDto postResponseDto = new PostResponseDto(post);
+        postResponseDto.setComments(commentsResponseDtoList);
+        return postResponseDto;
     }
 
     @Transactional
@@ -81,8 +99,11 @@ public class PostService {
             } else {
                 throw new IllegalArgumentException("작성자가 아니면 수정할 수 없습니다.");
             }
-
-            return new PostResponseDto(post);
+            List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(id);
+            List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
+            PostResponseDto postResponseDto = new PostResponseDto(post);
+            postResponseDto.setComments(commentsResponseDtoList);
+            return  postResponseDto;
 
         } else {
             throw new NullPointerException("토큰이 존재하지 않습니다.");

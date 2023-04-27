@@ -1,7 +1,9 @@
 package com.hanghae.springlevelone.service;
 
-import com.hanghae.springlevelone.dto.AuthRequestDto;
+import com.hanghae.springlevelone.dto.LoginRequestDto;
+import com.hanghae.springlevelone.dto.SignupRequestDto;
 import com.hanghae.springlevelone.entity.User;
+import com.hanghae.springlevelone.entity.UserOrAdminEnum;
 import com.hanghae.springlevelone.jwt.JwtUtil;
 import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.repository.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -20,40 +23,38 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public ResponseEntity<Message> signup(AuthRequestDto authRequestDto) {
-        String username = authRequestDto.getUsername();
-        String password = authRequestDto.getPassword();
+    public String signup(SignupRequestDto signupRequestDto, HttpServletResponse response) throws IOException {
+        String username = signupRequestDto.getUsername();
+        String password = signupRequestDto.getPassword();
 
         if (userRepository.findByUsername(username).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 아이디 입니다.");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "중복된 아이디 입니다.");
+            return null;
         }
-
-        User user = new User(username, password);
+        UserOrAdminEnum userOrAdmin = UserOrAdminEnum.USER;
+        if (signupRequestDto.isAdmin()) {
+            userOrAdmin = UserOrAdminEnum.ADMIN;
+        }
+        User user = new User(username, password, userOrAdmin);
         userRepository.save(user);
 
-        Message message = new Message();
-        message.setMsg("회원가입 성공");
-        message.setStatusCode(HttpStatus.OK.value());
-        return ResponseEntity.ok(message);
+        return HttpStatus.OK.value()+" 회원가입 완료";
     }
 
     @Transactional(readOnly = true)
-    public ResponseEntity<Message> login(AuthRequestDto authRequestDto, HttpServletResponse response) {
-        String username = authRequestDto.getUsername();
-        String password = authRequestDto.getPassword();
+    public String login(LoginRequestDto loginRequestDto, HttpServletResponse response) throws IOException {
+        String username = loginRequestDto.getUsername();
+        String password = loginRequestDto.getPassword();
 
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new IllegalArgumentException("아이디가 일치하지 않습니다.")
         );
 
-        if (!user.getPassword().equals(password)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        if (!user.getPassword().equals(password) || !user.getUsername().equals(username)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "회원 정보를 찾을 수 없습니다.");
         }
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername()));
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername(), user.getAdmin()));
 
-        Message message = new Message();
-        message.setMsg("로그인 성공");
-        message.setStatusCode(HttpStatus.OK.value());
-        return ResponseEntity.ok(message);
+        return HttpStatus.OK.value()+ " 로그인 성공";
     }
 }

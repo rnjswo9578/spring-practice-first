@@ -22,11 +22,16 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private UserOrAdminEnum admin;
+
     @OneToMany(mappedBy = "user")
     List<Post> posts = new ArrayList<>();
 
-    public User(String username, String password) {
+    public User(String username, String password, UserOrAdminEnum userOrAdminEnum) {
         this.username = username;
         this.password = password;
+        this.admin = userOrAdminEnum;
     }
 }
