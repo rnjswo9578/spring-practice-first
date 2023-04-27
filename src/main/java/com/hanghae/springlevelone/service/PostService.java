@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -137,9 +139,31 @@ public class PostService {
         }
     }
 
+    //method 분리-------------------------------------------------------------------------------------
     public Post checkPost(Long id){
         return postRepository.findById(id).orElseThrow(
                 () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
         );
+    }
+
+    public Claims tokenCheck(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token == null || !jwtUtil.validateToken(token)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "토큰이 유효하지 않습니다.");
+            return null;
+        }
+
+        claims = jwtUtil.getInfoFromToken(token);
+        return claims;
+    }
+
+    public boolean userCheck(Comment comment, Claims claims, HttpServletResponse response) throws IOException {
+        if (!comment.getUsername().equals(claims.getSubject())) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
+            return false;
+        }
+        return true;
     }
 }
