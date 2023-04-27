@@ -6,15 +6,14 @@ import com.hanghae.springlevelone.dto.PostResponseDto;
 import com.hanghae.springlevelone.entity.Comment;
 import com.hanghae.springlevelone.entity.Post;
 import com.hanghae.springlevelone.entity.User;
+import com.hanghae.springlevelone.entity.UserOrAdminEnum;
 import com.hanghae.springlevelone.jwt.JwtUtil;
-import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.repository.CommentsRepository;
 import com.hanghae.springlevelone.repository.PostRepository;
 import com.hanghae.springlevelone.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -107,12 +106,14 @@ public class PostService {
     }
 
     //method 분리-------------------------------------------------------------------------------------
+    //post_id로 게시글 조회.
     public Post checkPost(Long id){
         return postRepository.findById(id).orElseThrow(
                 () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
         );
     }
 
+    //토큰 유효성 검사 후 claims 반환
     public Claims tokenCheck(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String token = jwtUtil.resolveToken(request);
         Claims claims;
@@ -126,19 +127,16 @@ public class PostService {
         return claims;
     }
 
+    //사용자 유효성 검사
     public boolean userCheck(Post post, Claims claims, HttpServletResponse response) throws IOException {
         if (!post.getUsername().equals(claims.getSubject())) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
-            return false;
+            if (claims.get("auth").equals("ADMIN")) {
+                return true;
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
+                return false;
+            }
         }
         return true;
-    }
-
-    public PostResponseDto addComments(Long id, Post post) {
-        List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(id);
-        List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
-        PostResponseDto postResponseDto = new PostResponseDto(post);
-        postResponseDto.setComments(commentsResponseDtoList);
-        return postResponseDto;
     }
 }

@@ -2,10 +2,8 @@ package com.hanghae.springlevelone.controller;
 
 import com.hanghae.springlevelone.dto.LoginRequestDto;
 import com.hanghae.springlevelone.dto.SignupRequestDto;
-import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;

@@ -5,11 +5,9 @@ import com.hanghae.springlevelone.dto.SignupRequestDto;
 import com.hanghae.springlevelone.entity.User;
 import com.hanghae.springlevelone.entity.UserOrAdminEnum;
 import com.hanghae.springlevelone.jwt.JwtUtil;
-import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

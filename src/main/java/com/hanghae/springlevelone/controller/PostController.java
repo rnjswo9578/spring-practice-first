@@ -2,10 +2,8 @@ package com.hanghae.springlevelone.controller;
 
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
-import com.hanghae.springlevelone.message.Message;
 import com.hanghae.springlevelone.service.PostService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;

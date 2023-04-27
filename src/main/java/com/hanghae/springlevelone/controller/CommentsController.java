@@ -1,11 +1,9 @@
 package com.hanghae.springlevelone.controller;
 
-import com.hanghae.springlevelone.dto.CommentsResponseDto;
 import com.hanghae.springlevelone.dto.CommentsRequestDto;
-import com.hanghae.springlevelone.message.Message;
+import com.hanghae.springlevelone.dto.CommentsResponseDto;
 import com.hanghae.springlevelone.service.CommentsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;

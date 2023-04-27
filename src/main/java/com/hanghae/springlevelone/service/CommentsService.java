@@ -96,8 +96,12 @@ public class CommentsService {
 
     public boolean userCheck(Comment comment, Claims claims, HttpServletResponse response) throws IOException {
         if (!comment.getUsername().equals(claims.getSubject())) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
-            return false;
+            if (claims.get("auth").equals("ADMIN")) {
+                return true;
+            } else {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
+                return false;
+            }
         }
         return true;
     }
