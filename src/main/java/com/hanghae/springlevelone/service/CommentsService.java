@@ -10,6 +10,7 @@ import com.hanghae.springlevelone.repository.PostRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,10 +26,10 @@ public class CommentsService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public CommentsResponseDto createComment(CommentsRequestDto commentsRequestDto, Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Claims claims = tokenCheck(request, response);
+    public ResponseEntity<Object> createComment(CommentsRequestDto commentsRequestDto, Long id, HttpServletRequest request )   {
+        Claims claims = getClaimsFromToken(request);
         if (claims == null) {
-            return null;
+            return ResponseEntity.badRequest().body("토큰이 유효하지 않습니다.");
         }
 
         Post post = postRepository.findById(id).orElseThrow(
@@ -38,68 +39,60 @@ public class CommentsService {
         Comment comment = commentsRepository.saveAndFlush(new Comment(commentsRequestDto, claims.getSubject()));
         comment.setPost(post);
 
-        return new CommentsResponseDto(comment);
+        return ResponseEntity.ok().body(new CommentsResponseDto(comment));
     }
 
     @Transactional
-    public CommentsResponseDto updateComment(CommentsRequestDto commentsRequestDto, Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Claims claims = tokenCheck(request, response);
+    public ResponseEntity<Object> updateComment(CommentsRequestDto commentsRequestDto, Long id, HttpServletRequest request) {
+        Claims claims = getClaimsFromToken(request);
         if (claims == null) {
-            return null;
+            return ResponseEntity.badRequest().body("토큰이 유효하지 않습니다.");
         }
 
         Comment comment = commentsRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 댓글 입니다.")
         );
 
-        if (!userCheck(comment, claims, response)) {
-            return null;
+        if (!userCheck(comment, claims)) {
+            return ResponseEntity.badRequest().body("수정 / 삭제 권한이 없습니다.");
         }
         comment.update(commentsRequestDto);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        return new CommentsResponseDto(comment);
+        return ResponseEntity.ok().body(new CommentsResponseDto(comment));
     }
 
     @Transactional
-    public String deleteComment(Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Claims claims = tokenCheck(request, response);
+    public ResponseEntity<Object> deleteComment(Long id, HttpServletRequest request ) {
+        Claims claims = getClaimsFromToken(request);
         if (claims == null) {
-            return null;
+            return ResponseEntity.badRequest().body("토큰이 유효하지 않습니다.");
         }
 
         Comment comment = commentsRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 댓글 입니다.")
         );
 
-        if (!userCheck(comment, claims, response)) {
-            return null;
+        if (!userCheck(comment, claims)) {
+            return ResponseEntity.badRequest().body("수정 / 삭제 권한이 없습니다.");
         }
         commentsRepository.delete(comment);
 
-        response.setStatus(HttpServletResponse.SC_OK);
-        return HttpStatus.OK.value()+" 댓글이 삭제됐습니다.";
+        return ResponseEntity.ok().body("댓글이 삭제 됐습니다.");
     }
 
-    public Claims tokenCheck(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private Claims getClaimsFromToken(HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
         if (token == null || !jwtUtil.validateToken(token)) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "토큰이 유효하지 않습니다.");
             return null;
         }
-
-        claims = jwtUtil.getInfoFromToken(token);
-        return claims;
+        return jwtUtil.getInfoFromToken(token);
     }
 
-    public boolean userCheck(Comment comment, Claims claims, HttpServletResponse response) throws IOException {
+    public boolean userCheck(Comment comment, Claims claims) {
         if (!comment.getUsername().equals(claims.getSubject())) {
             if (claims.get("auth").equals("ADMIN")) {
                 return true;
             } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "작성자만 수정/삭제할 수 있습니다.");
                 return false;
             }
         }

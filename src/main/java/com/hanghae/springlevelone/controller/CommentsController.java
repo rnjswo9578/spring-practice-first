@@ -4,6 +4,7 @@ import com.hanghae.springlevelone.dto.CommentsRequestDto;
 import com.hanghae.springlevelone.dto.CommentsResponseDto;
 import com.hanghae.springlevelone.service.CommentsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,17 +18,17 @@ public class CommentsController {
     private final CommentsService commentsService;
 
     @PostMapping("/{id}")
-    public CommentsResponseDto createComment(@RequestBody CommentsRequestDto commentsRequestDto, @PathVariable Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return commentsService.createComment(commentsRequestDto, id, request, response);
+    public ResponseEntity<Object> createComment(@RequestBody CommentsRequestDto commentsRequestDto, @PathVariable Long id, HttpServletRequest request)   {
+        return commentsService.createComment(commentsRequestDto, id, request);
     }
 
     @PutMapping("/{id}")
-    public CommentsResponseDto updateComment(@RequestBody CommentsRequestDto commentsRequestDto, @PathVariable Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return commentsService.updateComment(commentsRequestDto, id, request, response);
+    public ResponseEntity<Object> updateComment(@RequestBody CommentsRequestDto commentsRequestDto, @PathVariable Long id, HttpServletRequest request)   {
+        return commentsService.updateComment(commentsRequestDto, id, request);
     }
 
     @DeleteMapping("/{id}")
-    public String deleteComment(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return commentsService.deleteComment(id, request, response);
+    public ResponseEntity<Object> deleteComment(@PathVariable Long id, HttpServletRequest request) {
+        return commentsService.deleteComment(id, request);
     }
 }

@@ -7,12 +7,11 @@ import com.hanghae.springlevelone.entity.UserOrAdminEnum;
 import com.hanghae.springlevelone.jwt.JwtUtil;
 import com.hanghae.springlevelone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -21,38 +20,39 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public String signup(SignupRequestDto signupRequestDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<Object> signup(SignupRequestDto signupRequestDto) {
         String username = signupRequestDto.getUsername();
         String password = signupRequestDto.getPassword();
 
-        if (userRepository.findByUsername(username).isPresent()) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "중복된 아이디 입니다.");
-            return null;
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            return ResponseEntity.badRequest().body("중복된 아이디 입니다.");
         }
+
         UserOrAdminEnum userOrAdmin = UserOrAdminEnum.USER;
         if (signupRequestDto.isAdmin()) {
             userOrAdmin = UserOrAdminEnum.ADMIN;
         }
-        User user = new User(username, password, userOrAdmin);
+
+        user = new User(username, password, userOrAdmin);
         userRepository.save(user);
 
-        return HttpStatus.OK.value()+" 회원가입 완료";
+        return ResponseEntity.ok().body("회원가입 성공");
     }
 
     @Transactional(readOnly = true)
-    public String login(LoginRequestDto loginRequestDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<Object> login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
         String username = loginRequestDto.getUsername();
         String password = loginRequestDto.getPassword();
 
-        User user = userRepository.findByUsername(username).orElseThrow(
-                () -> new IllegalArgumentException("아이디가 일치하지 않습니다.")
-        );
+        User user = userRepository.findByUsername(username);
+        if (user == null) return ResponseEntity.badRequest().body("아이디 정보를 찾을 수 없습니다.");
 
-        if (!user.getPassword().equals(password) || !user.getUsername().equals(username)) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "회원 정보를 찾을 수 없습니다.");
+        if (!user.getPassword().equals(password)) {
+            return ResponseEntity.badRequest().body("비밀번호를 확인해주세요.");
         }
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername(), user.getAdmin()));
 
-        return HttpStatus.OK.value()+ " 로그인 성공";
+        return ResponseEntity.ok().body("로그인 성공");
     }
 }

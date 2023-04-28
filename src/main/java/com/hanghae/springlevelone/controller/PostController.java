@@ -4,6 +4,7 @@ import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
 import com.hanghae.springlevelone.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,8 +20,8 @@ public class PostController {
 
 
     @PostMapping("/posting")
-    public PostResponseDto createPost(@RequestBody PostRequestDto postRequestDto, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return postService.createPost(postRequestDto, request, response);
+    public ResponseEntity<Object> createPost(@RequestBody PostRequestDto postRequestDto, HttpServletRequest request) {
+        return postService.createPost(postRequestDto, request);
     }
     @GetMapping("/list")
     public List<PostResponseDto> getPostList() {
@@ -31,11 +32,11 @@ public class PostController {
         return postService.getPost(id);
     }
     @PutMapping("/{id}")
-    public PostResponseDto updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return postService.updatePost(id, postRequestDto, request, response);
+    public ResponseEntity<Object> updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, HttpServletRequest request) {
+        return postService.updatePost(id, postRequestDto, request);
     }
     @DeleteMapping("/{id}")
-    public String deletePost(@PathVariable Long id, HttpServletRequest request, HttpServletResponse response) throws IOException {
-        return postService.deletePost(id, request, response);
+    public ResponseEntity<Object> deletePost(@PathVariable Long id, HttpServletRequest request) {
+        return postService.deletePost(id, request);
     }
 }
