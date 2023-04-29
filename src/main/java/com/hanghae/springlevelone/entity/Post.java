@@ -20,37 +20,26 @@ public class Post extends Timestamped{
     private String title;
 
     @Column(nullable = false)
-    private String username;
-
-    @Column(nullable = false)
-    private String password;
-
-    @Column(nullable = false)
     private String post;
 
     @ManyToOne()
     private User user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "post", orphanRemoval = true, cascade = CascadeType.ALL)
     List<Comment> commentsList = new ArrayList<>();
 
-    public Post(PostRequestDto postRequestDto, User user) {
+    public Post(PostRequestDto postRequestDto) {
         this.title = postRequestDto.getTitle();
-        this.username = user.getUsername();
-        this.password = user.getPassword();
         this.post = postRequestDto.getPost();
     }
 
     public void setUser(User user) {
         this.user = user;
+        user.getPosts().add(this);
     }
 
     public void update(PostRequestDto postRequestDto) {
         this.title = postRequestDto.getTitle();
         this.post = postRequestDto.getPost();
-    }
-
-    public void addComment(Comment comment) {
-        this.commentsList.add(comment);
     }
 }

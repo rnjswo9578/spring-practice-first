@@ -1,27 +1,19 @@
 package com.hanghae.springlevelone.service;
 
-import com.hanghae.springlevelone.dto.CommentsResponseDto;
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
-import com.hanghae.springlevelone.entity.Comment;
 import com.hanghae.springlevelone.entity.Post;
 import com.hanghae.springlevelone.entity.User;
-import com.hanghae.springlevelone.entity.UserOrAdminEnum;
 import com.hanghae.springlevelone.jwt.JwtUtil;
-import com.hanghae.springlevelone.repository.CommentsRepository;
 import com.hanghae.springlevelone.repository.PostRepository;
 import com.hanghae.springlevelone.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +22,6 @@ import java.util.stream.Collectors;
 public class PostService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
-    private final CommentsRepository commentsRepository;
     private final JwtUtil jwtUtil;
 
     @Transactional
@@ -41,7 +32,7 @@ public class PostService {
         }
         User user = userRepository.findByUsername(claims.getSubject());
 
-        Post post = postRepository.saveAndFlush(new Post(postRequestDto, user));
+        Post post = postRepository.saveAndFlush(new Post(postRequestDto));
         post.setUser(user);
 
         return ResponseEntity.ok().body(new PostResponseDto(post));
@@ -49,28 +40,15 @@ public class PostService {
 
     @Transactional(readOnly = true)
     public List<PostResponseDto> getPostList() {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
-        List<PostResponseDto> postResponseDtos = new ArrayList<>();
-
-        for (Post post : posts) {
-            List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(post.getId());
-            List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
-            PostResponseDto postResponseDto = new PostResponseDto(post);
-            postResponseDto.setComments(commentsResponseDtoList);
-            postResponseDtos.add(postResponseDto);
-        }
-        return postResponseDtos;
+        return postRepository.findAllByOrderByCreatedAtDesc().stream().map(PostResponseDto::new).collect(Collectors.toList());
     }
 
     public PostResponseDto getPost(Long id) {
         Post post = postRepository.findById(id).orElseThrow(
                 () -> new NullPointerException("해당 게시글이 존재하지 않습니다.")
         );
-        List<Comment> comments = commentsRepository.findAllByPostIdOrderByCreatedAtDesc(id);
-        List<CommentsResponseDto> commentsResponseDtoList = comments.stream().map(CommentsResponseDto::new).collect(Collectors.toList());
-        PostResponseDto postResponseDto = new PostResponseDto(post);
-        postResponseDto.setComments(commentsResponseDtoList);
-        return postResponseDto;
+
+        return new PostResponseDto(post);
     }
 
     @Transactional
@@ -123,7 +101,7 @@ public class PostService {
 
     //사용자 유효성 검사
     public boolean userCheck(Post post, Claims claims) {
-        if (!post.getUsername().equals(claims.getSubject())) {
+        if (!post.getUser().getUsername().equals(claims.getSubject())) {
             if (claims.get("auth").equals("ADMIN")) {
                 return true;
             } else {

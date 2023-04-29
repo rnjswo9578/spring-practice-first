@@ -21,13 +21,10 @@ public class PostResponseDto {
     public PostResponseDto(Post post) {
         this.id = post.getId();
         this.title = post.getTitle();
-        this.username = post.getUsername();
+        this.username = post.getUser().getUsername();
         this.post = post.getPost();
         this.createdAt = post.getCreatedAt();
         this.modifiedAt = post.getModifiedAt();
-    }
-
-    public void setComments(List<CommentsResponseDto> comments) {
-        this.comments = comments;
+        this.comments = post.getCommentsList().stream().map(CommentsResponseDto::new).collect(Collectors.toList());
     }
 }

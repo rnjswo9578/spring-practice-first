@@ -21,6 +21,7 @@ public class Comment extends Timestamped{
     private String username;
 
     @ManyToOne
+    @JoinColumn(name = "post_id")
     private Post post;
 
     public Comment(CommentsRequestDto commentsRequestDto, String subject) {
@@ -30,6 +31,7 @@ public class Comment extends Timestamped{
 
     public void setPost(Post post) {
         this.post = post;
+        post.getCommentsList().add(this);
     }
 
     public void update(CommentsRequestDto commentsRequestDto){
