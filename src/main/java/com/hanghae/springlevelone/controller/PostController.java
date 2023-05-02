@@ -2,9 +2,11 @@ package com.hanghae.springlevelone.controller;
 
 import com.hanghae.springlevelone.dto.PostRequestDto;
 import com.hanghae.springlevelone.dto.PostResponseDto;
+import com.hanghae.springlevelone.security.UserDetailsImpl;
 import com.hanghae.springlevelone.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,24 +21,24 @@ public class PostController {
     private final PostService postService;
 
 
-    @PostMapping("/posting")
-    public ResponseEntity<Object> createPost(@RequestBody PostRequestDto postRequestDto, HttpServletRequest request) {
-        return postService.createPost(postRequestDto, request);
+    @PostMapping("/posts")
+    public ResponseEntity<Object> createPost(@RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return postService.createPost(postRequestDto, userDetails.getUser());
     }
-    @GetMapping("/list")
+    @GetMapping("/post")
     public List<PostResponseDto> getPostList() {
         return postService.getPostList();
     }
-    @GetMapping("/list/{id}")
+    @GetMapping("/post/{id}")
     public PostResponseDto getPost(@PathVariable Long id){
         return postService.getPost(id);
     }
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, HttpServletRequest request) {
-        return postService.updatePost(id, postRequestDto, request);
+    @PutMapping("/post/{id}")
+    public ResponseEntity<Object> updatePost(@PathVariable Long id, @RequestBody PostRequestDto postRequestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return postService.updatePost(id, postRequestDto, userDetails.getUser());
     }
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deletePost(@PathVariable Long id, HttpServletRequest request) {
-        return postService.deletePost(id, request);
+    @DeleteMapping("/post/{id}")
+    public ResponseEntity<Object> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return postService.deletePost(id, userDetails.getUser());
     }
 }

@@ -18,5 +18,7 @@ public class SignupRequestDto {
     @Pattern(regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "password 형식 : 대소문자, 숫자, 특수문자(@,$,!,%,*,?,&)만 입력가능 및 하나 씩 포함 해야 함.")
     private String password;
 
+    private String adminToken;
+
     private boolean admin = false;
 }
